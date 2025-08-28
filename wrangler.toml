@@ -1,0 +1,32 @@
+name = "github-hosts"
+main = "src/index.ts"
+compatibility_date = "2024-10-28"
+compatibility_flags = ["nodejs_compat"]
+assets = { directory = "public" }
+
+# [vars]
+# API_KEY = ""
+
+[[kv_namespaces]]
+binding = "github_hosts"
+id = "6aa21fb8369c4369befbcf150354a45e"
+
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "my-database"
+# database_id = ""
+
+# [ai]
+# binding = "AI"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[triggers]
+crons = ["0 */1 * * *"]

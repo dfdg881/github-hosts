@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Host - 加速访问 GitHub | 自动更新的 Hosts 工具</title>
+
+  <meta name="description"
+    content="GitHub Host 是一个自动更新的 Hosts 工具，使用 Cloudflare Workers 和公共 DNS API 来加速访问 GitHub，解决访问慢的问题。每小时自动更新，永久免费。">
+  <meta name="keywords" content="GitHub加速,Hosts工具,GitHub访问加速,GitHub520,DNS优化,Cloudflare Workers">
+  <meta name="author" content="TinsFox">
+  <link rel="canonical" href="https://github-hosts.tinsfox.com" />
+
+  <meta property="og:title" content="GitHub Host - 加速访问 GitHub | 自动更新的 Hosts 工具">
+  <meta property="og:description" content="使用 Cloudflare Workers 和公共 DNS API 加速访问 GitHub，每小时自动更新，永久免费。">
+  <meta property="og:image" content="https://github-hosts.tinsfox.com/og.svg">
+  <meta property="og:url" content="https://github-hosts.tinsfox.com">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="GitHub Host">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GitHub Host - 加速访问 GitHub">
+  <meta name="twitter:description" content="使用 Cloudflare Workers 和公共 DNS API 加速访问 GitHub，解决访问慢的问题。">
+  <meta name="twitter:image" content="https://github-hosts.tinsfox.com/og.svg">
+
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <!-- favicon.ico -->
+  <link rel="icon" type="image/ico" href="/favicon.ico">
+
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.svg">
+
+  <link rel="preconnect" href="https://github.com">
+
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div class="header">
+    <div class="logo-container">
+      <img src="/logo.svg" alt="GitHub Host" class="logo" />
+    </div>
+    <h1>GitHub Host</h1>
+    <p>使用 Cloudflare Workers 和公共 DNS API 加速访问 GitHub</p>
+  </div>
+
+  <h2>📝 项目介绍</h2>
+  <p>GitHub 访问加速，解决 GitHub 访问慢的问题。使用 Cloudflare Workers 和公共 DNS API 来获取 IP 地址。</p>
+  感谢 <a href="https://github.com/521xueweihan/GitHub520">GitHub520</a> 提供的灵感。
+
+  <h2>🚀 特点</h2>
+  <ul>
+    <li>使用 Cloudflare Workers 部署，无需服务器</li>
+    <li>使用 Cloudflare DNS (1.1.1.1) 和 Google DNS 进行域名解析</li>
+    <li>使用 Cloudflare KV 存储数据，确保高可用性</li>
+    <li>提供 REST API 接口</li>
+    <li>每 60 分钟自动更新一次 DNS 记录</li>
+  </ul>
+
+  <h2>💻 使用方法</h2>
+  <h3>1. 命令行工具（推荐）</h3>
+
+  <h4>MacOS 用户</h4>
+  <pre><code class="language-bash">sudo curl -fsSL https://github.com/TinsFox/github-hosts/releases/download/v0.0.1/github-hosts.darwin-arm64 -o github-hosts && sudo chmod +x ./github-hosts && ./github-hosts</code></pre>
+
+  <div class="important-note">
+    <p>⚠️ Windows 与 Linux 的脚本还没有经过测试，遇到问题请提 issue</p>
+  </div>
+
+  <h4>Windows 用户</h4>
+  <p>在管理员权限的 PowerShell 中执行：</p>
+  <pre><code class="language-powershell">irm https://github.com/TinsFox/github-hosts/releases/download/v0.0.1/github-hosts.windows-amd64.exe | iex</code></pre>
+
+  <h4>Linux 用户</h4>
+  <pre><code class="language-bash">sudo curl -fsSL https://github.com/TinsFox/github-hosts/releases/download/v0.0.1/github-hosts.linux-amd64 -o github-hosts && sudo chmod +x ./github-hosts && ./github-hosts</code></pre>
+
+  <p>更多版本请查看 <a href="https://github.com/TinsFox/github-hosts/releases">Release 页面</a></p>
+
+  <h3>2. 使用 SwitchHosts 工具</h3>
+  <ol>
+    <li>下载并安装 <a href="https://github.com/oldj/SwitchHosts">SwitchHosts</a></li>
+    <li>添加规则：
+      <ul>
+        <li>方案名：GitHub Hosts</li>
+        <li>类型：远程</li>
+        <li>URL：<span id="switchHostsUrl">https://github-hosts.tinsfox.com/hosts</span></li>
+        <li>自动更新：1 小时</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>当前 hosts 内容</h3>
+  <div class="hosts-container">
+    <button class="copy-btn">复制</button>
+    <pre id="hosts">正在加载 hosts 内容...</pre>
+  </div>
+
+  <h3>3. 手动更新</h3>
+  <ol>
+    <li>获取 hosts：访问 <a href="https://github-hosts.tinsfox.com/hosts">https://github-hosts.tinsfox.com/hosts</a></li>
+    <li>更新本地 hosts 文件：
+      <ul>
+        <li>Windows：<code>C:\Windows\System32\drivers\etc\hosts</code></li>
+        <li>MacOS/Linux：<code>/etc/hosts</code></li>
+      </ul>
+    </li>
+    <li>刷新 DNS：
+      <ul>
+        <li>Windows：<code>ipconfig /flushdns</code></li>
+        <li>MacOS：<code>sudo killall -HUP mDNSResponder</code></li>
+        <li>Linux：<code>sudo systemd-resolve --flush-caches</code></li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>❓ 常见问题</h2>
+  <h3>权限问题</h3>
+  <ul>
+    <li>Windows：需要以管理员身份运行</li>
+    <li>MacOS/Linux：需要 sudo 权限</li>
+  </ul>
+
+  <h3>定时任务未生效</h3>
+  <ul>
+    <li>Windows：检查任务计划程序中的 "GitHub Hosts Updater"</li>
+    <li>MacOS/Linux：使用 <code>crontab -l</code> 检查</li>
+  </ul>
+
+  <h3>更新失败</h3>
+  <ul>
+    <li>检查日志：<code>~/.github-hosts/logs/update.log</code></li>
+    <li>确保网络连接和文件权限正常</li>
+  </ul>
+
+  <h2>🔧 API 接口文档</h2>
+  <table class="api-table">
+    <tr>
+      <th>接口</th>
+      <th>方法</th>
+      <th>描述</th>
+    </tr>
+    <tr>
+      <td>/hosts</td>
+      <td><span class="method get">GET</span></td>
+      <td>获取 hosts 文件内容</td>
+    </tr>
+    <tr>
+      <td>/hosts.json</td>
+      <td><span class="method get">GET</span></td>
+      <td>获取 JSON 格式的数据</td>
+    </tr>
+    <tr>
+      <td>/{domain}</td>
+      <td><span class="method get">GET</span></td>
+      <td>获取指定域名的实时 DNS 解析结果</td>
+    </tr>
+    <tr>
+      <td>/reset</td>
+      <td><span class="method post">POST</span></td>
+      <td>清空缓存并重新获取所有数据（需要 API Key）</td>
+    </tr>
+  </table>
+
+  <h2>📦 源码</h2>
+  <p>本项目完全开源，欢迎访问 <a href="https://github.com/TinsFox/github-hosts">GitHub 仓库</a></p>
+
+  <footer style="margin-top: 50px; text-align: center; color: #666;">
+    <p>Made with ❤️ by <a href="https://github.com/TinsFox">TinsFox</a></p>
+  </footer>
+
+  <script src="/index.js"></script>
+</body>
+
+</html>
