@@ -9,7 +9,7 @@ assets = { directory = "public" }
 
 [[kv_namespaces]]
 binding = "github_hosts"
-id = "b47d7f8c9df14032b4fd6c65b2f81e63"
+id = "6aa21fb8369c4369befbcf150354a45e"
 
 
 # [[r2_buckets]]
