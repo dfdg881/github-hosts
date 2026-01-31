@@ -7,8 +7,12 @@ import {
 } from "./services/hosts"
 import { handleSchedule } from "./scheduled"
 import { Bindings } from "./types"
+import { GITHUB_URLS } from "./constants"
 
 const app = new Hono<{ Bindings: Bindings }>()
+
+// 域名白名单，只允许查询预定义的 GitHub 域名
+const ALLOWED_DOMAINS = new Set(GITHUB_URLS)
 
 app.get("/", async (c) => {
   const html = await c.env.ASSETS.get("index.html")
@@ -49,10 +53,22 @@ app.post("/reset", async (c) => {
 
 app.get("/:domain", async (c) => {
   const domain = c.req.param("domain")
+
+  // 只允许查询预定义域名
+  if (!ALLOWED_DOMAINS.has(domain)) {
+    return c.json(
+      {
+        error: "Domain not in allowed list",
+        hint: "Use /hosts endpoint to get all supported domains",
+      },
+      400
+    )
+  }
+
   const data = await getDomainData(c.env, domain)
 
   if (!data) {
-    return c.json({ error: "Domain not found" }, 404)
+    return c.json({ error: "Failed to resolve domain" }, 500)
   }
 
   return c.json(data)
