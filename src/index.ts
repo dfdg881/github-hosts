@@ -8,11 +8,15 @@ import {
 import { handleSchedule } from "./scheduled"
 import { Bindings } from "./types"
 import { GITHUB_URLS } from "./constants"
+import { rateLimit } from "./middleware/rate-limit"
 
 const app = new Hono<{ Bindings: Bindings }>()
 
 // 域名白名单，只允许查询预定义的 GitHub 域名
 const ALLOWED_DOMAINS = new Set(GITHUB_URLS)
+
+// 全局限流: 60 请求/分钟
+app.use("*", rateLimit({ limit: 60, windowMs: 60_000 }))
 
 app.get("/", async (c) => {
   const html = await c.env.ASSETS.get("index.html")
@@ -34,7 +38,8 @@ app.get("/hosts", async (c) => {
   return c.text(hostsContent)
 })
 
-app.post("/reset", async (c) => {
+// 管理接口限流: 5 请求/分钟
+app.post("/reset", rateLimit({ limit: 5, windowMs: 60_000 }), async (c) => {
   const apiKey = c.req.query("key")
 
   // 验证 API key
@@ -51,7 +56,8 @@ app.post("/reset", async (c) => {
   })
 })
 
-app.get("/:domain", async (c) => {
+// 域名查询限流: 30 请求/分钟
+app.get("/:domain", rateLimit({ limit: 30, windowMs: 60_000 }), async (c) => {
   const domain = c.req.param("domain")
 
   // 只允许查询预定义域名

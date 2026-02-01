@@ -4,3 +4,8 @@ export interface Bindings {
   ASSETS: { get(key: string): Promise<string | null> }
   github_hosts: KVNamespace
 }
+
+export interface RateLimitConfig {
+  limit: number
+  windowMs: number
+}
