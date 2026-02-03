@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/logo.svg" width="140" height="140" alt="github-hosts logo">
   <h1>github-hosts</h1>
-  <p>GitHub 访问加速，解决 GitHub 访问慢的问题。使用 Cloudflare Workers 和公共 DNS API 来获取 IP 地址。</p>
+  <p>⚠️ <strong>服务已临时下线</strong> - 因接口被刷，KV 配额已耗尽，恢复时间待定。</p>
 </div>
 
 ## 特性
