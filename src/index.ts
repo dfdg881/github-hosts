@@ -12,11 +12,45 @@ import { rateLimit } from "./middleware/rate-limit"
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-// 域名白名单，只允许查询预定义的 GitHub 域名
-const ALLOWED_DOMAINS = new Set(GITHUB_URLS)
+const MAINTENANCE_MESSAGE = {
+  error: "Service temporarily unavailable",
+  message: "因接口被刷，KV 配额已耗尽，服务已临时下线，恢复时间待定。",
+  timestamp: new Date().toISOString(),
+}
 
-// 全局限流: 60 请求/分钟
-app.use("*", rateLimit({ limit: 60, windowMs: 60_000 }))
+const MAINTENANCE_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>服务已下线 - GitHub Host</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+           max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
+    .notice { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; 
+             padding: 30px; margin: 20px 0; }
+    .notice h2 { color: #856404; margin-top: 0; }
+    .notice p { color: #856404; font-size: 16px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="notice">
+    <h2>⚠️ 服务已临时下线</h2>
+    <p>因接口被刷，KV 配额已耗尽。<br><br>
+    服务正在紧急修复中，恢复时间待定。<br><br>
+    感谢您的理解与支持。</p>
+  </div>
+</body>
+</html>`
+
+// 所有接口返回维护公告
+app.use("*", async (c) => {
+  const accept = c.req.header("Accept") || ""
+  if (accept.includes("text/html")) {
+    return c.html(MAINTENANCE_HTML, 503)
+  }
+  return c.json(MAINTENANCE_MESSAGE, 503)
+})
 
 app.get("/", async (c) => {
   const html = await c.env.ASSETS.get("index.html")

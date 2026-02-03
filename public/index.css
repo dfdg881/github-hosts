@@ -361,3 +361,27 @@ pre code {
   word-wrap: normal;
   overflow-x: auto;
 }
+
+.maintenance-notice {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto 40px;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.maintenance-notice h2 {
+  color: #856404;
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+}
+
+.maintenance-notice p {
+  color: #856404;
+  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
