@@ -1,6 +1,9 @@
 import { DNS_PROVIDERS, GITHUB_URLS, HOSTS_TEMPLATE } from "../constants"
 import { Bindings } from "../types"
 
+// TTL 缓存时间：1 小时
+const DOMAIN_CACHE_TTL_MS = 60 * 60 * 1000
+
 export type HostEntry = [string, string]
 
 interface DomainData {
@@ -210,31 +213,66 @@ export function formatHostsFile(entries: HostEntry[]): string {
   )
 }
 
-// 修改：获取单个域名数据的方法，直接从爬虫获取实时数据
+// 修改：获取单个域名数据的方法，添加 TTL 缓存检查
 export async function getDomainData(
   env: Bindings,
   domain: string
 ): Promise<DomainData | null> {
   try {
+    // 1. 先读取 KV 检查缓存
+    const kvData = (await env.github_hosts.get("domain_data", {
+      type: "json",
+    })) as KVData | null
+
+    const existingData = kvData?.domain_data?.[domain]
+
+    // 2. 检查缓存是否有效（1小时内）
+    if (existingData?.lastChecked) {
+      const cacheAge = Date.now() - new Date(existingData.lastChecked).getTime()
+      if (cacheAge < DOMAIN_CACHE_TTL_MS) {
+        // 缓存命中，直接返回，无 DNS 调用，无 KV WRITE
+        return existingData
+      }
+    }
+
+    // 3. 缓存过期，执行 DNS 查询
     const ip = await fetchIPFromIPAddress(domain)
     if (!ip) {
-      return null
+      return existingData || null // DNS 失败返回旧数据
     }
 
     const currentTime = new Date().toISOString()
-    const kvData = (await env.github_hosts.get("domain_data", {
-      type: "json",
-    })) as KVData | null || { domain_data: {}, lastUpdated: currentTime }
 
+    // 4. IP 未变化则不写入 KV（只更新内存中的 lastChecked）
+    if (existingData && existingData.ip === ip) {
+      // 更新 lastChecked 到 KV
+      const newKvData: KVData = kvData || {
+        domain_data: {},
+        lastUpdated: currentTime,
+      }
+      newKvData.domain_data[domain] = {
+        ...existingData,
+        lastChecked: currentTime,
+      }
+      newKvData.lastUpdated = currentTime
+      await env.github_hosts.put("domain_data", JSON.stringify(newKvData))
+      return { ...existingData, lastChecked: currentTime }
+    }
+
+    // 5. IP 变化才写入 KV
     const newData: DomainData = {
       ip,
       lastUpdated: currentTime,
       lastChecked: currentTime,
     }
 
-    kvData.domain_data[domain] = newData
-    kvData.lastUpdated = currentTime
-    await env.github_hosts.put("domain_data", JSON.stringify(kvData))
+    const newKvData: KVData = kvData || {
+      domain_data: {},
+      lastUpdated: currentTime,
+    }
+    newKvData.domain_data[domain] = newData
+    newKvData.lastUpdated = currentTime
+    await env.github_hosts.put("domain_data", JSON.stringify(newKvData))
 
     return newData
   } catch (error) {
